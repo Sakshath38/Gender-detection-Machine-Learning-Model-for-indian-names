@@ -1,6 +1,6 @@
 # Gender Detection ML Model for YaanBarpe
 
-**Status**: 🚧 **In Development** - Expected completion by Q2 2025
+**Status**: 🚧 **In Development** - Expected completion by Q3 2025
 
 ## 📋 Project Overview
 
