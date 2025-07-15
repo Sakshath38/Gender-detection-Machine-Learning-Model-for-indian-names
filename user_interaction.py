@@ -18,9 +18,11 @@ class GenderDetection :
         self.count = 0
         self.choice = None
         self.model = None
+        self.sheet = None
+        self.prediction = None
     
     def counter(self):
-        
+        self.count = self.count +1
         if self.count >=3:
             print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
             print("\t------Thank you ------\n")
@@ -121,15 +123,19 @@ class GenderDetection :
                 print(r'Example:C:\Users\....\Gender-detection-Machine-Learning-Model-for-indian-names\Data_files\Indian_firstname_Gender_Data.csv')
                 
                 path = str(input("\n Enter the path to the file/directory below :\n"))
-                path = path.strip('"')
+                self.path = path.strip('"')
                 extention = self.get_file_extension(path)
                 
                 try:
                     if extention == ".csv":
                         self.data = pd.read_csv(path)
                         
+                        '''require to the actual sheet during gender test, for checking accuracy in test_module'''
+                        self.sheet = self.data.copy()
+                        
                     elif extention == ".xlsx":
                         self.data = pd.read_excel(path)
+                        self.sheet = self.data.copy()
                         
                     else:
                         if extention != ".xlsx" or extention != ".csv":
@@ -161,6 +167,9 @@ class GenderDetection :
                         return getting_column_name() #this will redirect into same function
                             
                     else:
+                        #we need to generalise the name throughout
+                        self.sheet.rename(columns={name_column:"name"}, inplace= True)
+
                         #load the data otherwise
                         return data[name_column]
                      
@@ -308,26 +317,27 @@ class GenderDetection :
         
         #now we need to get the data for prediction
         '''Connect the user data for prediction'''
-        if features == None or features.isnull().any() == 0:
+        if features is None or features.empty or features.isnull().any().any() :
             df = pd.read_csv("model.help/X_test.csv")
             print(f"\n!!!\tUsing internal 'test' set as the input feature is EMPTY\t!!!\n")
             X_test = True
         else:
             #this is the structured input to the model 
             df = features 
-        
+
+
         '''Testing the model'''
 
         transformed_features = pipeline.transform(df)
-        prediction = model_trained.predict(transformed_features)
-        df["prediction"] = prediction
+        self.prediction = model_trained.predict(transformed_features)
+        df["prediction"] = self.prediction
 
         df.to_csv("output.csv", index = False)
         print("\n\t\t .... Inference completed succefully....\n")
-        print("Results saved to 'output.csv'")
+        print("Results saved to 'output.csv'\n")
         
         #displaying the output
-        self.output_printing(prediction, df["name"])
+        self.output_printing(predict_input=self.prediction, feature_name=df["name"])
         
         #checking for accuracy 
         accuracy = input("\n\t Do you want to check accuracy? (Yes/No) :")
@@ -335,78 +345,115 @@ class GenderDetection :
 
         if accuracy == "yes":
 
-            def gender_cleaned_list(gender_column, return_value):
+            def gender_cleaned_list(data,gender_column, return_value):
                 
                 final_list = []
-                name_list = [name.strip().lower() for name in gender_column.split(",")]
-                
+
+                #since 3 is the sheet, it will through an error
+                if return_value != 3:
+                    name_list = [name.strip().lower() for name in gender_column.split(",")]
+                else:
+                    name_list = data
+
                 #inputing the clean and filtered data into the list
+                rejected_gender =[]
+
                 for name in name_list:
                     cleaned_name = self.clean_name(name= name) #this will clean the name
 
                     if self.is_valid_name(cleaned_name): #this will only append the right valid names
                         final_list.append(cleaned_name)
                     else:
-                        print(f"\nWarning: '{name}' is not a valid Gender and was skipped\n")
-
-                     #check if the final final_list is empty or not
-                    if not final_list:
-                        print("Error: No valid Genders were provided!\n")
+                        if return_value != 3:
+                            print(f"\nWarning: '{name}' is not a valid Gender and was skipped\n")
                         
-                        self.counter()
-                        return getting_gender(choice=return_value)
+                        else:
+                            rejected_gender.append(name)
+                
+                if return_value != 3:
+                    if rejected_gender:
+                        print(f"\n!!!\tWarning below name(s) are rejeted\t!!!\n")
+                        print(rejected_gender)
+                
 
-                if self.data['name'].count() == final_list.count():
+                #check if the final final_list is empty or not
+                if not final_list:
+                    print("Error: No valid Genders were provided!\n")
+                    self.counter()
+                    
+                    return getting_gender(choice=return_value)
 
-                    print(f"\nYour list of Gender:\t{final_list}\n")
+                
+                if return_value != 3:
+                    condition = (self.data['name'].notna().sum() == len(final_list))
+                else:
+                    condition = (data.notna().sum() == len(final_list))
+
+                if condition:
 
                     final_list = self.gender_conversion(final_list,True,False) #since the data is binary
+                    print(f"\nYour list has Gender:\tMale :{final_list.count(1)}\tFemale :{final_list.count(0)}\n")
+
                     #converting to dataframes
                     gender_column = pd.DataFrame({
-                        "Gender":final_list
+                        "gender":final_list
                     })
 
                 else:
-                    print(f"Error: Gender Value [{final_list.count()}] does not match the input list size of [{self.data['name'].count}] !\n")
+                    print(f"Error: Number of Gender Value does not match the number of input Names !\n")
                     self.counter
                     return getting_gender(choice=return_value)
+                                   
                     
                 return gender_column
             
             #get the geneder column for the data set 
             def getting_gender(data=self.data, choice=self.choice):
 
-
                 if choice == 1:
                     gender_column = input("\nEnter 'Gender' (Male/Female):\t")
-                    gender_column = gender_cleaned_list(gender_column=gender_column, return_value = 1)
+                    gender_column = gender_cleaned_list(data=self.data,gender_column=gender_column, return_value = 1)
+                    df = gender_column
 
                 elif choice == 2:
                     gender_column = input("\nEnter list with 'Genders' (Male/Female):\t")
-                    gender_column = gender_cleaned_list(gender_column=gender_column, return_value = 2)
+                    gender_column = gender_cleaned_list(data=self.data,gender_column=gender_column, return_value = 2)
+                    df = gender_column
                                        
                 elif self.choice == 3:
+
+                    #create a copy of self.data 
+                    data = self.sheet
+                    df = data.copy()
 
                     gender_column = input("\nEnter the exact column name with 'Genders':\t")
                     gender_column = gender_column.strip().strip('"') #this will help in removing space 
                     
-                    #create a copy of self.data 
-                    df = data.copy()
                    
                     if gender_column not in df.columns:
                         #The only case of failure is at choice == 3 
-                        print(f"'{gender_column}' is not available in the sheet\n")
+                        print(f"'\n{gender_column}' is not available in the sheet\n")
 
                         #give one more option to enter the column name
                         self.counter()
                         return getting_gender(choice=3) #this will redirect into same function
                             
                     else:
-                        if df['name'].count() == gender_column.count():
+                        if df['name'].count() == df[gender_column].count():
+
+                            #does this contain a number assuming binary 
+                            if not set([0, 1]).isdisjoint(df[gender_column].values):
+                                
+                                df[gender_column] = self.gender_conversion(
+                                    Gender_Data=df[gender_column],
+                                    GenderToNumber=False,
+                                    NumberToGender=True
+                                )
+                            
                             #load the data otherwise
-                            df = gender_cleaned_list(gender_column=gender_column,return_value=3)
+                            df = gender_cleaned_list(data=df[gender_column],gender_column=gender_column,return_value=3)
                         else:
-                            print(f"Error: Gender Value of [{gender_column.count()}] does not match the input size of [{self.data['name'].count}] !\n")
+                            print(f"Error: Gender Value of [{df[gender_column].count()}] does not match the input size of [{self.data['name'].count}] !\n")
                             #give one more option to enter the column name
                             self.counter()
                             return getting_gender(choice=3) #this will redirect into same function
@@ -415,16 +462,21 @@ class GenderDetection :
                     
                 
             expected_output  = getting_gender() #this will load the exact data from the dataframe
+            
 
-            if expected_output is None and features == X_test :
-                expected_output = pd.read_csv("model.help/Y_test")
+            if expected_output is not None and X_test == True :
+                expected_output = pd.read_csv("model.help/Y_test.csv")
                 print(f"\n !!!\t Input feature is None so using internal test set for prediction\t!!!\n")
 
+            # converting the expected values to a list because prediction is a list
+            expected_output = expected_output.values.tolist()
+            prediction = np.array(self.prediction)
+            
             count = 0
             for i in range(0,len(expected_output)):
                 if expected_output[i] == prediction[i]:
                     count = count +1
-            print((count*100)/len(expected_output))
+            print(f"\n\n Accuracy of output is:\t{(count*100)/len(expected_output)}\n")
 
         else :
             #prompt to loop actions if needed 
@@ -444,8 +496,11 @@ class GenderDetection :
                     gender = 1
                     final_list.append(gender)
                 
-                if str(gender).lower() == "Female":
+                elif str(gender).lower() == "female":
                     gender = 0
+                    final_list.append(gender)
+                else:
+                    gender = "Issue"
                     final_list.append(gender)
 
         #converts the  binary into gender
@@ -453,20 +508,21 @@ class GenderDetection :
             for gender in Gender_Data:
             
                 if int(gender)== 1:
-                    gender = "Male"
+                    gender = str("Male")
                     final_list.append(gender)
                 
-                if int(gender) == 0:
-                    gender = "Female"
+                elif int(gender) == 0:
+                    gender = str("Female")
+                    final_list.append(gender)
+                else:
+                    gender = str("Issue")
                     final_list.append(gender)
 
         return final_list  
 
 
     def output_printing(self,predict_input,feature_name):
-
-
-        print(predict_input)
+        pass
         
         
 
@@ -474,7 +530,6 @@ def main():
     try:
         Detector = GenderDetection()
         Detector.get_data()
-        Detector.output_printing()
 
     except Exception as e:
         print(f"\n!!!\tThere was an error : {e}\t!!!\n")        
