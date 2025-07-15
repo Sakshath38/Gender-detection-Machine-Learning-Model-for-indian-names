@@ -1,25 +1,35 @@
-#this is the file used to make this project usable by non coders and get the output of the Model 
-
+#this is the file used to make this project usable by non coders and get the output of the Model
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedShuffleSplit
+
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 import os
 import sys
 import re
-from pathlib import Path
 
 #lets build the class that will do set of operation like 
 # getting the data, doing the featuring ,training the data and finally displaying the data in the user friendly manner 
 
 class GenderDetection :
+
     def __init__(self):
         self.data = None
         self.count = 0
         self.choice = None
         self.model = None
+    
+    def counter(self):
+        
+        if self.count >=3:
+            print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
+            print("\t------Thank you ------\n")
+            sys.exit(1) #this is used to quit the program once the limits are hit
+        else:
+            print("-----\tPlease try again\t-----")
+        
+        return None
+    
 
     def get_data(self):
         
@@ -35,27 +45,15 @@ class GenderDetection :
                 self.fetch_file(self.choice)
             else:
                 print(f"!!! {self.choice} is not the valid input !!!")
-                self.count = self.count +1
-                if self.count >=3:
-                    print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                    print("\t------Thank you ------\n")
-                    sys.exit(1) #this is used to quit the program once the limits are hit
-                else:
-                    print("-----\tPlease try again\t-----")
-                    self.get_data() #redirected to this
+                self.counter()
+                self.get_data() #redirected to this
 
 
         except Exception as e:
             #mostly for not integer entries this will be used
             print(f"\n!!!\tThere was an error : {e}\t!!!\n")
-            self.count = self.count +1
-            if self.count >=3:
-                print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                print("\t------Thank you ------\n")
-                sys.exit(1)
-            else:
-                print("\n-----\tPlease try again\t-----")
-                self.get_data() #redirected to this
+            self.counter()
+            self.get_data() #redirected to this
 
     def fetch_file(self, choice):
         
@@ -72,15 +70,10 @@ class GenderDetection :
                     final_list.append(cleaned_name)
                 else:
                     print(f"\nWarning: '{name}' is not a valid name\n")
-                    self.count = self.count +1
-                    if self.count >=4:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                        sys.exit(1)
-                    else:
-                        print("-----\tPlease try again\t-----")
-                        self.fetch_file(1) #this will take back to the loop and start again with choice =1
-                        return None
+                    self.counter()
+                    self.fetch_file(1) #this will take back to the loop and start again with choice =1
+                    
+                    return None   
 
                 self.data = pd.DataFrame({
                     "name":final_list
@@ -109,15 +102,9 @@ class GenderDetection :
                 #check if the final final_list is empty or not
                 if not final_list:
                     print("Error: No valid names were provided!\n")
-                    self.count = self.count +1
-                    if self.count >=4:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                        sys.exit(1)
-                    else:
-                        print("-----\tPlease try again\t-----")
-                        self.fetch_file(2) #this will take back to the loop and start again with choice =2
-                        return None
+                    self.counter()
+                    self.fetch_file(2) #this will take back to the loop and start again with choice =2
+                    return None
                     
                 print(f"\nYour list of names:\t{final_list}\n")
 
@@ -147,27 +134,15 @@ class GenderDetection :
                     else:
                         if extention != ".xlsx" or extention != ".csv":
                             print(f"\n\t[{extention}] cannot be passed\n") 
-                        self.count = self.count +1
-                        if self.count >=4:
-                            print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                            print("\t------Thank you ------\n")
-                            sys.exit(1)
-                        else:
-                            print("-----\tPlease try again\t-----")
-                            self.fetch_file(3) #this will take back to the loop and start again with choice =3
-                            return None
+                        self.counter()
+                        self.fetch_file(3) #this will take back to the loop and start again with choice =3
+                        return None
                         
                 except FileNotFoundError:
                     print(f"\n!!!\t[{path}] is not accessible\n")
-                    self.count = self.count +1
-                    if self.count >=4:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                        sys.exit(1)
-                    else:
-                        print("-----\tPlease try again\t-----")
-                        self.fetch_file(3) #this will take back to the loop and start again with choice =3
-                        return None
+                    self.counter()
+                    self.fetch_file(3) #this will take back to the loop and start again with choice =3
+                    return None
                     
                 
                 #get the clean names for excel as other files 
@@ -182,14 +157,8 @@ class GenderDetection :
                         print(f"'{name_column}' is not available in the sheet\n")
 
                         #give one more option to enter the column name
-                        self.count = self.count +1
-                        if self.count >=4:
-                            print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                            print("\t------Thank you ------\n")
-                            sys.exit(1)
-                        else:
-                            print("-----\tPlease try again\t-----")
-                            return getting_column_name() #this will redirect into same function
+                        self.counter()
+                        return getting_column_name() #this will redirect into same function
                             
                     else:
                         #load the data otherwise
@@ -216,15 +185,9 @@ class GenderDetection :
 
                 if not final_list:
                     print("Error: No valid names were provided!\n")
-                    self.count = self.count +1
-                    if self.count >=4:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                        sys.exit(1)
-                    else:
-                        print("-----\tPlease try again\t-----")
-                        self.fetch_file(3) #this will take back to the loop and start again with choice =2
-                        return None
+                    self.counter()
+                    self.fetch_file(3) #this will take back to the loop and start again with choice =2
+                    return None
 
                 #converting the data into the required form 
                 self.data = pd.DataFrame({
@@ -267,6 +230,7 @@ class GenderDetection :
 
             print(f"\n!!!\tThere was an error : {e}\t!!!\n")
     
+    
     #this will help in checking the validity of the name 
     def is_valid_name(self,name):
         if not name or not isinstance(name, str):
@@ -307,8 +271,7 @@ class GenderDetection :
             
             print(f"\n!!!\tThere was an error : {e}\t!!!\n")
             
-            
-    
+
     #this is the function for getting the features
     def extract_name_features(self,df, name_col ='name'):
         df['name'] = df[name_col].str.strip().str.lower()
@@ -326,135 +289,46 @@ class GenderDetection :
         return df_function
 
 
-    def training(self):
-
-        #training the data end to end using the model.ipynb
-        print("\n\nTraining the model, pls wait .....\n")
-
-        try:
-
-            #1. getting the data
-            
-            final_path = Path.cwd()/"Data_files"/"Indian_firstname_Gender_Data.csv"  #this will help to make the system robust to FileNotFoundError
-            # final_path = Path.exists(final_path)
-
-            if not final_path.exists() :
-
-                for i in range(2):
-                    print("\n!!!\tUnable to locate the file\t!!!\n")
-
-                    #since path cannot handle the string directly 
-                    path = Path(input("Enter exact path to the file 'Indian_firstname_Gender_Data.csv' below:\n").strip('"'))
-                    
-                    if path.exists():
-                        final_path = path
-                        break 
-                    elif i==1:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                    
-                return None
-                
-            df = pd.read_csv(final_path)
-        
-            #2. get the features from model
-            model_features = self.extract_name_features(df, name_col= "Name")
-
-            #3. handling categorical data 
-            cat_features = ["first_letter","last_letter","suffix_2","prefix_2"]
-            encoder = OneHotEncoder(sparse_output= False, handle_unknown= "ignore")
-            cat_encoded = encoder.fit_transform(model_features[cat_features])
-
-            #4. combining with numerical values 
-            X_numeric = model_features.drop(cat_features + ["name"], axis =1).values
-            X_ready = np.hstack([X_numeric, cat_encoded])
-
-            #5. Scaling the values
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X_ready)
-            df_converted = pd.DataFrame(X_scaled)
-
-            #6. Merge with the gender labels for spliting
-            df = pd.concat([df_converted, df["Gender"]], axis = 1)
-
-            #7. appyling stratified shuffle split 
-            split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-
-            for train_index, test_index in split.split(df,df["Gender"]):
-                df_train_set = df.loc[train_index]
-                df_test_set = df.loc[test_index]
-
-            #8.training on the entire data set without spliting
-            X = df_train_set.iloc[:, :-1]
-            Y = df_train_set.iloc[:, -1]
-
-            #9. Traing the model
-            self.model = RandomForestClassifier()
-            self.model.fit(X,Y)
-
-            #10. creating the test scenario (by default)
-            X_test = df_test_set.iloc[:,:-1]
-            Y_test = df_test_set.iloc[:,-1]
-
-            print("\n\t\t .... Model Training completed succefully....\n")
-
-            return self.model,X_test,Y_test
-        
-        except Exception as e:
-            
-            print(f"\n!!!\tThere was an error : {e}\t!!!\n")
-
-
     def test_model(self,features):
-       
-        model,X_test,Y_test = self.training() #this will get the return data from training module
-
-        print("Testing the Model ............")
         
-        feature = features
+        '''from model''' 
+        #defined localy because it should only be used when called for!
+        import model
+        from model import MODEL_FILE,PIPELINE_FILE
+        import joblib
+
+
+        if not os.path.exists(MODEL_FILE):
+            model()
         
-        #storing the name for future use 
-        features_name = features["name"]
-
-        #since the feature are raw we need to pass them into these files
-
-        cat_features = ["first_letter","last_letter","suffix_2","prefix_2"]
-        encoder = OneHotEncoder(sparse_output= False, handle_unknown= "ignore")
-        cat_encoded = encoder.fit_transform(feature[cat_features])
+        #INFERENCE PHASE 
+        print("\nRunning model for prediction ......\n")
+        model_trained = joblib.load(MODEL_FILE)
+        pipeline = joblib.load(PIPELINE_FILE)
         
-        print(cat_encoded)
-        sys.exit(1)
-
-        #4. combining with numerical values 
-        X_numeric = features.drop(cat_features + ["name"], axis =1).values
-        X_ready = np.hstack([X_numeric, cat_encoded]) #excluded the name and added all numerical values
-
-        #5. Scaling the values
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X_ready)
-        df_converted = pd.DataFrame(X_scaled)
-
-        prediction_input = df_converted
+        #now we need to get the data for prediction
+        '''Connect the user data for prediction'''
+        if features == None or features.isnull().any() == 0:
+            df = pd.read_csv("model.help/X_test.csv")
+            print(f"\n!!!\tUsing internal 'test' set as the input feature is EMPTY\t!!!\n")
+            X_test = True
+        else:
+            #this is the structured input to the model 
+            df = features 
         
-        #11. predicting the output
-        
-        if prediction_input is None:
+        '''Testing the model'''
 
-            prediction_input = X_test
-            print(f"\n !!!\t Input feature is None so using internal test set for prediction\t!!!\n")
-        
-        print(prediction_input)
-        sys.exit(1)
-        
-        #getting the prediction
-        predict = model.predict(prediction_input)
+        transformed_features = pipeline.transform(df)
+        prediction = model_trained.predict(transformed_features)
+        df["prediction"] = prediction
 
+        df.to_csv("output.csv", index = False)
+        print("\n\t\t .... Inference completed succefully....\n")
+        print("Results saved to 'output.csv'")
+        
         #displaying the output
-        self.output_printing(predict, features_name)
+        self.output_printing(prediction, df["name"])
         
-        #geting the expected output from self.data
-        
-
         #checking for accuracy 
         accuracy = input("\n\t Do you want to check accuracy? (Yes/No) :")
         accuracy = accuracy.strip().lower()
@@ -464,7 +338,6 @@ class GenderDetection :
             def gender_cleaned_list(gender_column, return_value):
                 
                 final_list = []
-                
                 name_list = [name.strip().lower() for name in gender_column.split(",")]
                 
                 #inputing the clean and filtered data into the list
@@ -479,35 +352,24 @@ class GenderDetection :
                      #check if the final final_list is empty or not
                     if not final_list:
                         print("Error: No valid Genders were provided!\n")
-                        self.count = self.count +1
-                        if self.count >=4:
-                            print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                            print("\t------Thank you ------\n")
-                            sys.exit(1)
-                        else:
-                            print("-----\tPlease try again\t-----")
-                            return getting_gender(choice=return_value)
+                        
+                        self.counter()
+                        return getting_gender(choice=return_value)
 
                 if self.data['name'].count() == final_list.count():
 
                     print(f"\nYour list of Gender:\t{final_list}\n")
 
-                    final_list = self.gender_conversion(final_list,True,False)
+                    final_list = self.gender_conversion(final_list,True,False) #since the data is binary
                     #converting to dataframes
                     gender_column = pd.DataFrame({
-                        "name":final_list
+                        "Gender":final_list
                     })
 
                 else:
                     print(f"Error: Gender Value [{final_list.count()}] does not match the input list size of [{self.data['name'].count}] !\n")
-                    self.count = self.count +1
-                    if self.count >=4:
-                        print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                        print("\t------Thank you ------\n")
-                        sys.exit(1)
-                    else:
-                        print("-----\tPlease try again\t-----")
-                        return getting_gender(choice=return_value)
+                    self.counter
+                    return getting_gender(choice=return_value)
                     
                 return gender_column
             
@@ -536,32 +398,18 @@ class GenderDetection :
                         print(f"'{gender_column}' is not available in the sheet\n")
 
                         #give one more option to enter the column name
-                        self.count = self.count +1
-                        if self.count >=4:
-                            print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                            print("\t------Thank you ------\n")
-                            sys.exit(1)
-                        else:
-                            print("-----\tPlease try again\t-----")
-                            return getting_gender(choice=3) #this will redirect into same function
+                        self.counter()
+                        return getting_gender(choice=3) #this will redirect into same function
                             
                     else:
                         if df['name'].count() == gender_column.count():
                             #load the data otherwise
-                            df = df[gender_column]
+                            df = gender_cleaned_list(gender_column=gender_column,return_value=3)
                         else:
                             print(f"Error: Gender Value of [{gender_column.count()}] does not match the input size of [{self.data['name'].count}] !\n")
                             #give one more option to enter the column name
-                            self.count = self.count +1
-                            if self.count >=4:
-                                print("\n!!!\tYou have excceded the repeat limit, Try again later\t!!!\n")
-                                print("\t------Thank you ------\n")
-                                sys.exit(1)
-                            else:
-                                print("-----\tPlease Fix the sheet and try again later\t-----")
-                                sys.exit(1)
-
-                                return None #this will redirect into same function
+                            self.counter()
+                            return getting_gender(choice=3) #this will redirect into same function
 
                 return df
                     
@@ -569,18 +417,18 @@ class GenderDetection :
             expected_output  = getting_gender() #this will load the exact data from the dataframe
 
             if expected_output is None and features == X_test :
-                expected_output = Y_test
+                expected_output = pd.read_csv("model.help/Y_test")
                 print(f"\n !!!\t Input feature is None so using internal test set for prediction\t!!!\n")
 
             count = 0
             for i in range(0,len(expected_output)):
-                if expected_output[i] == predict[i]:
+                if expected_output[i] == prediction[i]:
                     count = count +1
             print((count*100)/len(expected_output))
 
-        elif accuracy == "no":
+        else :
             #prompt to loop actions if needed 
-
+            print("\nThank you\n")
             return None
         
        
