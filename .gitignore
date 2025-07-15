@@ -1,0 +1,85 @@
+#syntax of .gitignore
+# *.csv            # Ignore all CSV files first with *
+# !important.csv   # Then make exception for this file with !
+
+#git ignore command lines just incase if you need 
+
+# # Check what files are being ignored
+# git status --ignored
+
+# # See if specific file is ignored
+# git check-ignore filename.csv
+
+# # List all ignored files
+# git ls-files --others --ignored --exclude-standard
+
+# # Current .gitignore ignores all CSV files
+# echo "*.csv" >> .gitignore
+
+# # Add exception for specific file
+# echo "!sample_data.csv" >> .gitignore
+
+# # Verify the file is now tracked
+# git check-ignore sample_data.csv
+# # No output means file is NOT ignored
+
+
+
+
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files
+*.csv
+*.tsv
+*.xlsx
+*.json
+*.xml
+*.sqlite
+*.db
+data/
+datasets/
+raw/
+processed/
+
+# Model artifacts
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+model.help/
+saved_models/
+checkpoints/
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
