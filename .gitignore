@@ -26,7 +26,7 @@
 
 
 
-
+tempCodeRunnerFile.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -56,6 +56,7 @@ processed/
 *.h5
 *.hdf5
 model.help/
+Data_files/others
 saved_models/
 checkpoints/
 
@@ -83,3 +84,7 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+
+#exclusive files
+!Preposed_model_training_data_of_name_gender_dataset.xlsx.csv

@@ -1,9 +1,13 @@
 #this is the file used to make this project usable by non coders and get the output of the Model
+
+'''from model''' 
+import  model 
+from model import model_training
+from model import MODEL_FILE,PIPELINE_FILE
+import joblib
+
 import pandas as pd
 import numpy as np
-
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import StandardScaler
 import os
 import sys
 import re
@@ -20,7 +24,8 @@ class GenderDetection :
         self.model = None
         self.sheet = None
         self.prediction = None
-    
+        self.model = model_training()  #to help in getting all the functions from the model
+       
     def counter(self):
         self.count = self.count +1
         if self.count >=3:
@@ -122,8 +127,8 @@ class GenderDetection :
 
                 print(r'Example:C:\Users\....\Gender-detection-Machine-Learning-Model-for-indian-names\Data_files\Indian_firstname_Gender_Data.csv')
                 
-                path = str(input("\n Enter the path to the file/directory below :\n"))
-                self.path = path.strip('"')
+                path = str(input("\n Enter the path to the file/directory below :\n")).strip('"')
+                self.path = path #for future use in gender collection
                 extention = self.get_file_extension(path)
                 
                 try:
@@ -155,7 +160,7 @@ class GenderDetection :
 
                 #local function to get the variable
                 def getting_column_name(data=self.data):
-                    name_column = input("\nEnter the exact column name with names:\t")
+                    name_column = input("\nEnter the exact COLUMN NAME with 'Names':\t")
                     name_column = name_column.strip().strip('"') #this will help in removing space 
 
                     if name_column not in data.columns:
@@ -267,8 +272,8 @@ class GenderDetection :
 
         try:
             print("Extracting features .........\n")
-            df_copy = df.copy()
-            feature = self.extract_name_features(df_copy) #this will work for all choices as the data is standardized to column_name = "name"
+            df_copy = df.copy() 
+            feature = self.model.extract_name_features(df_copy) 
             print("\n------\tYour features are as below:\t------\n")    
             print(feature)    #this will print the feature
 
@@ -281,35 +286,11 @@ class GenderDetection :
             print(f"\n!!!\tThere was an error : {e}\t!!!\n")
             
 
-    #this is the function for getting the features
-    def extract_name_features(self,df, name_col ='name'):
-        df['name'] = df[name_col].str.strip().str.lower()
-        df["name_length"] = df["name"].apply(len)
-        df["first_letter"] = df["name"].str[0]
-        df["last_letter"] = df["name"].str[-1]
-        df["vowel_count"] = df["name"].apply(lambda x: sum(1 for c in x if c in "aeiou"))
-        df["consonant_count"] = df["name_length"] - df["vowel_count"]
-        df["suffix_2"] = df["name"].str[-2:]
-        df["prefix_2"] = df["name"].str[:2]
-        df["is_last_letter_a"] = (df["last_letter"]== "a").astype(int)
-
-        #rearranging the df accordingly 
-        df_function = df[["name","name_length","first_letter","last_letter","vowel_count",	"consonant_count",	"suffix_2","prefix_2","is_last_letter_a"]].copy()
-        return df_function
-
-
     def test_model(self,features):
-        
-        '''from model''' 
-        #defined localy because it should only be used when called for!
-        import model
-        from model import MODEL_FILE,PIPELINE_FILE
-        import joblib
 
+        '''Import and get the training done accordingly'''
+        self.model.training()
 
-        if not os.path.exists(MODEL_FILE):
-            model()
-        
         #INFERENCE PHASE 
         print("\nRunning model for prediction ......\n")
         model_trained = joblib.load(MODEL_FILE)
@@ -318,12 +299,14 @@ class GenderDetection :
         #now we need to get the data for prediction
         '''Connect the user data for prediction'''
         if features is None or features.empty or features.isnull().any().any() :
+
             df = pd.read_csv("model.help/X_test.csv")
             print(f"\n!!!\tUsing internal 'test' set as the input feature is EMPTY\t!!!\n")
             X_test = True
         else:
-            #this is the structured input to the model 
+
             df = features 
+            X_test = False #Declaring for ease in accuracy prediction
 
 
         '''Testing the model'''
@@ -426,7 +409,7 @@ class GenderDetection :
                     data = self.sheet
                     df = data.copy()
 
-                    gender_column = input("\nEnter the exact column name with 'Genders':\t")
+                    gender_column = input("\nEnter the exact COLUMN NAME with 'Genders':\t")
                     gender_column = gender_column.strip().strip('"') #this will help in removing space 
                     
                    
@@ -472,11 +455,13 @@ class GenderDetection :
             expected_output = expected_output.values.tolist()
             prediction = np.array(self.prediction)
             
+            print(len(prediction))
+            print(len(expected_output))
             count = 0
-            for i in range(0,len(expected_output)):
+            for i in range(0,len(prediction)): 
                 if expected_output[i] == prediction[i]:
                     count = count +1
-            print(f"\n\n Accuracy of output is:\t{(count*100)/len(expected_output)}\n")
+            print(f"\n\n Accuracy of output is:\t{(count*100)/len(prediction)}\n")
 
         else :
             #prompt to loop actions if needed 
